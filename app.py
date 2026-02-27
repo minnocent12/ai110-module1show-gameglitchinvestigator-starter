@@ -28,16 +28,17 @@ def parse_guess(raw: str):
 
     return True, value, None
 
-
+# 🐛 Bug 1: Hints Point the Player in the Wrong Direction
 def check_guess(guess, secret):
     if guess == secret:
         return "Win", "🎉 Correct!"
 
     try:
+        #  FIXME: Logic breaks here: hint messages are swapped
         if guess > secret:
-            return "Too High", "📈 Go HIGHER!"
+            return "Too High", "📈 Go HIGHER!" # should say Go LOWER
         else:
-            return "Too Low", "📉 Go LOWER!"
+            return "Too Low", "📉 Go LOWER!"   # should say Go HIGHER
     except TypeError:
         g = str(guess)
         if g == secret:
@@ -91,9 +92,10 @@ st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
-
+# 🐛 Bug 2: Attempts Counter is Off — Player Loses a Guess Before Playing
 if "attempts" not in st.session_state:
-    st.session_state.attempts = 1
+    st.session_state.attempts = 1 # FIXME: Logic breaks here: should start at 0
+
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -130,10 +132,14 @@ with col2:
     new_game = st.button("New Game 🔁")
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
-
+    
+# 🐛 Bug 3: New Game Button Does Not Fully Reset the Game
 if new_game:
     st.session_state.attempts = 0
-    st.session_state.secret = random.randint(1, 100)
+    # 🐛 Bug 4: Switching Difficulty Does Not Change the Actual Number Range
+    st.session_state.secret = random.randint(1, 100) # FIXME: Logic breaks here — should use low, high from get_range_for_difficulty()
+
+    # FIXME: Logic breaks here : status, score, and history are not reset
     st.success("New game started.")
     st.rerun()
 
