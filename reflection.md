@@ -1,7 +1,5 @@
 # 💭 Reflection: Game Glitch Investigator
 
-Answer each question in 3 to 5 sentences. Be specific and honest about what actually happened while you worked. This is about your process, not trying to sound perfect.
-
 ## 1. What was broken when you started?
 
 🐛 Bug 1: Hints Point the Player in the Wrong Direction
@@ -170,7 +168,7 @@ agree on what "correct" actually means before any code is changed.
 **How this project changed the way I think about AI generated code:**
 Before this project, I assumed AI-generated code was either 
 correct or obviously broken. Now I understand it can be 
-confidently wrong — it looks clean, runs without errors, and 
+confidently wrong; it looks clean, runs without errors, and 
 still does the wrong thing. AI is a fast and useful collaborator, 
 but it needs a human with tests and critical thinking to catch 
 the subtle mistakes it makes without any warning.
