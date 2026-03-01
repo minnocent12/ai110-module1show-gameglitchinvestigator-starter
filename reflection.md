@@ -112,15 +112,65 @@ fixed function.
 
 ## 4. What did you learn about Streamlit and state?
 
-- In your own words, explain why the secret number kept changing in the original app.
-- How would you explain Streamlit "reruns" and session state to a friend who has never used Streamlit?
-- What change did you make that finally gave the game a stable secret number?
+**Why the secret number kept changing in the original app:**
+The secret number kept changing because Streamlit reruns the 
+entire script from top to bottom every time the user interacts 
+with anything such as: clicking a button, typing in a box, or changing 
+the difficulty dropdown. In the original code, the secret was 
+generated with `random.randint(low, high)` at the top level of 
+the script without checking if one already existed. This meant 
+every rerun picked a brand new secret number, making it 
+impossible to guess correctly since the target kept moving.
+
+**How I would explain Streamlit reruns and session state:**
+Imagine Streamlit like a soccer match where every time the referee blows the whistle, the entire field resets to kickoff. The ball goes back to the center. Players reposition. It’s like the play starts over from scratch. Regular variables are like drawing the score in the dirt on the field. Every time the whistle blows, the field gets cleaned and the score disappears.
+
+But `st.session_state` is like the official stadium scoreboard. Even when the referee stops play, even when there’s a foul, substitution, or VAR check — the scoreboard still remembers:
+
+- The score ⚽
+
+- The number of shots 🎯
+
+- The yellow cards 🟨
+
+- The time played ⏱
+
+In Streamlit, every click (button, slider, input) is like the referee blowing the whistle. The script reruns from top to bottom — the field resets.If you want something to persist between plays (like the score), you must store it in `st.session_state`. Otherwise, it resets to 0–0 every time someone touches the ball.
+
+**What change finally gave the game a stable secret number:**
+The fix was wrapping the secret generation in a check:
+`if "secret" not in st.session_state`. This means the secret 
+is only generated once on the very first run. Every rerun 
+after that skips the generation because the key already exists 
+in session state. The same pattern was applied to attempts, 
+score, status, and history to keep all game data stable across 
+reruns.
 
 ---
 
 ## 5. Looking ahead: your developer habits
 
-- What is one habit or strategy from this project that you want to reuse in future labs or projects?
-  - This could be a testing habit, a prompting strategy, or a way you used Git.
-- What is one thing you would do differently next time you work with AI on a coding task?
-- In one or two sentences, describe how this project changed the way you think about AI generated code.
+**One habit I want to reuse in future projects:**
+I want to keep using the two-layer verification approach — 
+running automated pytest tests AND manually testing in the 
+live app before marking anything as fixed. The most important 
+moment in this project was when `test_hard_range_wider_than_normal` 
+failed even though the diff looked correct. That taught me that 
+reading code and running code are two completely different things, 
+and I should never trust my eyes alone to verify a fix.
+
+**One thing I would do differently next time:**
+Next time I work with AI on a debugging task, I would write the 
+pytest tests BEFORE asking the AI to fix the bugs, not after. 
+If the tests had existed from the start, the Hard mode range bug 
+would have failed immediately and Claude would have had a clear 
+target to fix. Writing tests first forces both me and the AI to 
+agree on what "correct" actually means before any code is changed.
+
+**How this project changed the way I think about AI generated code:**
+Before this project, I assumed AI-generated code was either 
+correct or obviously broken. Now I understand it can be 
+confidently wrong — it looks clean, runs without errors, and 
+still does the wrong thing. AI is a fast and useful collaborator, 
+but it needs a human with tests and critical thinking to catch 
+the subtle mistakes it makes without any warning.
