@@ -9,7 +9,7 @@ While playing, I noticed something felt off after several wrong guesses. I kept 
 Expected: If the guess is too high, the hint should tell the player to go lower, and vice versa.
 What happened: The hint messages are swapped, then the game points the player in the wrong direction every single time.
 
-🐛 Bug 2: Attempts Counter is Off — Player Loses a Guess Before Playing
+🐛 Bug 2: Attempts Counter is Off : Player Loses a Guess Before Playing
 
 Under Normal difficulty, the sidebar clearly states "Attempts allowed: 8." However, when the game loads, the attempts left already shows 7 before I even submitted a single guess. After playing through, I confirmed I only got 7 actual guesses instead of 8. The counter appears to start at 1 instead of 0, so the game has already silently "used" one attempt before the player does anything. This also likely throws off the score calculation since the attempt number is wrong from the very beginning. This is not only under Normal difficulty, also in all other level of difficulties.
 Expected: Attempts should start at 0 before any guess is made, giving the player the full number of attempts shown on screen.
@@ -29,18 +29,84 @@ What happened: The sidebar label updates correctly, but the game still behaves a
 
 ## 2. How did you use AI as a teammate?
 
-- Which AI tools did you use on this project (for example: ChatGPT, Gemini, Copilot)?
-- Give one example of an AI suggestion that was correct (including what the AI suggested and how you verified the result).
-- Give one example of an AI suggestion that was incorrect or misleading (including what the AI suggested and how you verified the result).
+**AI tool used:** Claude Code (Anthropic's CLI agent)
+
+**Correct AI suggestion : fixing the swapped hint messages (Bug 1):**
+When I asked Claude Code to move `check_guess` into `logic_utils.py` 
+and fix the hint bug, Claude scanned the function and immediately 
+identified that the return messages were swapped: when a guess was 
+greater than the secret, the code returned `"Go HIGHER!"` instead of 
+`"Go LOWER!"`. Claude suggested swapping the messages so `guess > secret` 
+maps to `"📉 Go LOWER!"` and `guess < secret` maps to `"📈 Go HIGHER!"`. 
+It also correctly added the import line in `app.py` and removed the 
+original function to avoid duplication. I verified the fix two ways: 
+first by running `pytest -v` where `test_check_guess_too_high` and 
+`test_check_guess_too_low` both passed immediately, and then by playing 
+several rounds in the live Streamlit app; I deliberately guessed high 
+(e.g., 90 when the secret was 30) and confirmed the game correctly told 
+me to go lower, then guessed low (e.g., 5) and confirmed it told me to 
+go higher.
+
+**Incorrect / misleading AI suggestion : attempts counter patch (Bug 2):**
+When I described Bug 2 (the attempts counter starting at 1 instead of 0), 
+Claude's first suggestion was to patch only the *display* line in `app.py` 
+by changing `attempt_limit - st.session_state.attempts` to 
+`attempt_limit - st.session_state.attempts + 1` so the number shown on 
+screen would look correct. This was misleading: it would have made the 
+sidebar *appear* right while leaving `st.session_state.attempts` still 
+initialized at 1 internally. This meant the `update_score` call would 
+use an off-by-one attempt number, and the score formula 
+`100 - 10 * attempt_number` would unfairly penalize the player an extra 
+10 points on the very first guess, giving a max score of 90 instead of 
+100. I verified this by tracing the score math in `logic_utils.py` and 
+confirmed the bug was deeper than just the display. I pushed back on 
+Claude's suggestion and the correct fix ; which Claude agreed with after 
+I explained the issue ; was to initialize `st.session_state.attempts = 0` 
+and leave the display formula completely unchanged. This experience showed 
+me that AI suggestions can look correct on the surface while hiding a 
+deeper problem, and that human judgment is essential to verify not just 
+what the fix looks like but how it affects the rest of the code.
 
 ---
 
 ## 3. Debugging and testing your fixes
 
-- How did you decide whether a bug was really fixed?
-- Describe at least one test you ran (manual or using pytest)  
-  and what it showed you about your code.
-- Did AI help you design or understand any tests? How?
+**How did you decide whether a bug was really fixed?**
+I used two layers of verification for every fix. First, I ran 
+`pytest -v` to check the automated tests, if a test passed, 
+the logic was provably correct. Second, I ran the live Streamlit 
+app with `python -m streamlit run app.py` and played through the 
+game manually to confirm the fix felt right during actual gameplay. 
+I did not consider a bug truly fixed until both layers agreed,
+code that passed tests but felt wrong in the game, or felt right 
+in the game but failed a test, meant the fix was incomplete.
+
+**Describe at least one test you ran and what it showed you:**
+The most valuable test was `test_hard_range_wider_than_normal`. 
+I had asked Claude to move and fix `get_range_for_difficulty` 
+into `logic_utils.py`, and the diff looked correct on the surface 
+; the function moved cleanly and the import was added. However, 
+when I ran `pytest -v`, this test failed with the message: 
+"Hard range (1, 50) should be wider than Normal (1, 100)". 
+This showed me that Claude had moved the function correctly but 
+silently skipped the actual bug fix inside it. The test caught 
+something neither I nor the AI noticed just by reading the diff. 
+After manually changing `return 1, 50` to `return 1, 200`, 
+all 6 tests passed.
+
+**Did AI help you design or understand any tests? How?**
+Yes, I asked Claude Code to generate the pytest cases in 
+`tests/test_game_logic.py`. Claude noticed that the existing 
+starter tests were broken because they compared the full tuple 
+return value of `check_guess` to a plain string, for example 
+`assert result == "Win"` instead of correctly unpacking the 
+tuple with `outcome, _ = check_guess(50, 50)`. Claude rewrote 
+all 6 tests to unpack tuples correctly and added meaningful 
+assertions like `assert "LOWER" in message` to verify not just 
+the outcome but also the hint direction. This was a correct and 
+helpful suggestion, I accepted it after reviewing the diff and 
+confirming the assertions matched the expected behavior of each 
+fixed function.
 
 ---
 
