@@ -111,7 +111,12 @@ block from `check_guess` in `logic_utils.py`.
 
 ## 📸 Demo
 
-- [ ] [Insert a screenshot of your fixed, winning game here]
+
+<img width="1512" height="982" alt="1" src="https://github.com/user-attachments/assets/3dbe41a8-b9a3-4547-8098-a9938d3384d0" />
+<img width="1512" height="982" alt="2" src="https://github.com/user-attachments/assets/dfe06f86-420a-4454-926a-b682a6f40373" />
+<img width="1512" height="982" alt="3" src="https://github.com/user-attachments/assets/ec7720ba-573b-4cf7-911e-65fc317ab785" />
+<img width="1512" height="982" alt="4" src="https://github.com/user-attachments/assets/7fe9fd84-f65e-4849-890e-4de8c2b0a25e" />
+
 
 ## 🚀 Stretch Features
 
